@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ออกแบบและเปลี่ยน Database Schema</title>
+    <style>
+      :root { --ink:#16221e; --muted:#64716b; --paper:#f1efe7; --card:#fffdf7; --line:#d7d2c5; --green:#176747; --blue:#285c8d; --amber:#9a5c12; --red:#a13e34; }
+      * { box-sizing:border-box; }
+      body { margin:0; color:var(--ink); background:radial-gradient(circle at 8% 2%,#dcebe1,transparent 30rem),var(--paper); font-family:"Leelawadee UI","Noto Sans Thai",system-ui,sans-serif; line-height:1.65; }
+      main { width:min(1120px,calc(100% - 32px)); margin:auto; padding:54px 0 90px; }
+      h1,h2,h3,p { margin-top:0; }
+      h1 { max-width:890px; font-size:clamp(2.2rem,6vw,4.7rem); line-height:1.04; letter-spacing:-.045em; }
+      h2 { margin-bottom:18px; font-size:clamp(1.55rem,3vw,2.35rem); letter-spacing:-.025em; }
+      h3 { margin-bottom:7px; font-size:1.03rem; }
+      code { font-family:Consolas,monospace; font-size:.92em; }
+      .eyebrow { color:var(--green); font-size:.78rem; font-weight:850; letter-spacing:.13em; text-transform:uppercase; }
+      .lede { max-width:760px; color:var(--muted); font-size:1.14rem; }
+      section { margin-top:74px; }
+      .principle { margin-top:26px; padding:22px; border-left:5px solid var(--green); border-radius:4px 16px 16px 4px; background:#e3efe7; font-size:1.06rem; }
+      .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+      .card { padding:21px; border:1px solid var(--line); border-radius:17px; background:var(--card); box-shadow:0 14px 45px rgba(47,43,34,.08); }
+      .card p { margin-bottom:0; color:var(--muted); }
+      .number { display:grid; width:32px; height:32px; margin-bottom:16px; place-items:center; border-radius:9px; background:var(--ink); color:white; font-weight:800; }
+      .model { overflow-x:auto; padding:22px; border:1px solid var(--line); border-radius:20px; background:#17231f; color:white; }
+      .model-row { display:flex; justify-content:center; align-items:center; gap:11px; min-width:760px; margin:13px 0; }
+      .entity { min-width:155px; padding:14px 16px; border:1px solid #536d61; border-radius:12px; background:#24352e; text-align:center; }
+      .entity b { display:block; font-family:Consolas,monospace; }
+      .entity span { color:#b9cbc1; font-size:.83rem; }
+      .relation { color:#8bd0aa; font-size:.86rem; white-space:nowrap; }
+      .checklist { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+      .checklist li { padding:13px 15px 13px 45px; border:1px solid var(--line); border-radius:12px; background:var(--card); position:relative; }
+      .checklist li::before { position:absolute; left:15px; color:var(--green); content:"✓"; font-weight:900; }
+      .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:9px; }
+      .flow div { min-height:125px; padding:15px; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+      .flow b { display:block; margin-bottom:6px; color:var(--green); }
+      pre { margin:0; padding:19px; overflow-x:auto; border-radius:15px; background:#17231f; color:#edf7f0; }
+      .risk-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+      .risk { padding:20px; border-radius:16px; }
+      .safe { border:1px solid #a8c9b6; background:#e6f2ea; }
+      .care { border:1px solid #e2c38c; background:#fff2d7; }
+      .danger { border:1px solid #dfa9a4; background:#fff0ee; }
+      .risk strong { display:block; margin-bottom:9px; }
+      .timeline { display:grid; gap:8px; counter-reset:step; }
+      .timeline div { padding:16px 18px 16px 58px; border-left:3px solid var(--blue); background:var(--card); position:relative; }
+      .timeline div::before { position:absolute; left:16px; counter-increment:step; content:counter(step); color:var(--blue); font-weight:900; }
+      .quiz { padding:28px; border-radius:20px; background:#17231f; color:white; }
+      .quiz p { color:#c7d6ce; }
+      .answers { display:grid; gap:10px; }
+      button { padding:12px 14px; border:1px solid #5d776b; border-radius:11px; background:#25372f; color:white; cursor:pointer; font:inherit; text-align:left; }
+      button:hover,button:focus-visible { border-color:#9bd2b1; background:#315443; outline:none; }
+      #feedback { min-height:52px; margin:17px 0 0; color:#b6ebc9; font-weight:700; }
+      footer { margin-top:60px; color:var(--muted); font-size:.9rem; }
+      a { color:var(--green); }
+      @media (max-width:820px) { .grid,.risk-grid,.flow { grid-template-columns:1fr; } .flow div { min-height:auto; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Workforce Platform · บทเรียน 02</p>
+        <h1>Schema ที่ดีเริ่มจากข้อเท็จจริง ไม่ใช่ช่องในหน้าจอ</h1>
+        <p class="lede">วิธีแปลงกฎของธุรกิจให้เป็น table, column และ constraint พร้อมแนวทางเปลี่ยนโครงสร้างในอนาคตโดยรักษาข้อมูลเดิม</p>
+        <div class="principle"><strong>หลักเดียวที่ต้องจำ:</strong> schema คือกฎที่ฐานข้อมูลบังคับใช้ แม้โค้ดส่วนอื่นเขียนผิด ข้อมูลก็ไม่ควรหลุดออกจากกฎสำคัญ</div>
+      </header>
+
+      <section>
+        <p class="eyebrow">ขั้นตอนออกแบบ</p>
+        <h2>ถาม 4 คำถามก่อนเขียนโค้ด</h2>
+        <div class="grid">
+          <article class="card"><div class="number">1</div><h3>ระบบต้องจำ “สิ่ง” อะไร?</h3><p>สิ่งที่มีตัวตนและอายุของตัวเองมักเป็น table เช่น organization, user, team และ device</p></article>
+          <article class="card"><div class="number">2</div><h3>แต่ละสิ่งมีข้อเท็จจริงอะไร?</h3><p>ข้อเท็จจริงที่เป็นค่าเดี่ยวมักเป็น column เช่นชื่อทีม, email, platform และสถานะอุปกรณ์</p></article>
+          <article class="card"><div class="number">3</div><h3>สิ่งเหล่านั้นสัมพันธ์กันอย่างไร?</h3><p>หนึ่งองค์กรมีหลายทีม; ผู้ใช้เข้าร่วมหลายองค์กรได้ จึงต้องมี table ตัวเชื่อมสำหรับ membership</p></article>
+          <article class="card"><div class="number">4</div><h3>กฎอะไรห้ามผิด?</h3><p>กำหนด primary key, foreign key, unique, not null, enum และ index ให้ตรงกับกฎธุรกิจ</p></article>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">แบบจำลองปัจจุบัน</p>
+        <h2>ความสัมพันธ์หลักของ Workforce Platform</h2>
+        <div class="model" aria-label="ความสัมพันธ์ระหว่างตาราง">
+          <div class="model-row"><div class="entity"><b>organizations</b><span>ขอบเขต tenant</span></div><div class="relation">1 → หลาย</div><div class="entity"><b>teams</b><span>ทีมในองค์กร</span></div><div class="relation">1 → หลาย</div><div class="entity"><b>team_members</b><span>สมาชิกของทีม</span></div></div>
+          <div class="model-row"><div class="entity"><b>users</b><span>ตัวตนผู้ใช้</span></div><div class="relation">หลาย ← เชื่อม → หลาย</div><div class="entity"><b>organization_members</b><span>องค์กร + ผู้ใช้ + role</span></div><div class="relation">หลาย → 1</div><div class="entity"><b>organizations</b><span>บริษัท</span></div></div>
+          <div class="model-row"><div class="entity"><b>users</b><span>เจ้าของอุปกรณ์</span></div><div class="relation">1 → หลาย</div><div class="entity"><b>devices</b><span>ลงทะเบียนอุปกรณ์</span></div><div class="relation">หลาย → 1</div><div class="entity"><b>organizations</b><span>tenant</span></div></div>
+        </div>
+        <p style="margin-top:16px;color:var(--muted)"><code>users</code> ไม่มี <code>organization_id</code> เพราะคนหนึ่งอาจอยู่หลายองค์กร ส่วน table ที่เป็นข้อมูลของ tenant ต้องมี <code>organization_id</code> เพื่อแบ่งเขตข้อมูลอย่างชัดเจน</p>
+      </section>
+
+      <section>
+        <p class="eyebrow">คุณภาพของ schema</p>
+        <h2>รายการตรวจสอบก่อนเพิ่ม table</h2>
+        <ul class="checklist">
+          <li>table นี้แทนสิ่งหรือเหตุการณ์ที่มีความหมายจริง ไม่ได้สร้างตามหน้าจอเดียว</li>
+          <li>มี UUID primary key และ timestamp ที่จำเป็น</li>
+          <li>ถ้าเป็นข้อมูล tenant มี <code>organization_id</code> และ foreign key ที่ถูกต้อง</li>
+          <li>ค่าที่ต้องไม่ซ้ำมี unique constraint เช่น email หรือ slug</li>
+          <li>ค่าที่ห้ามขาดใช้ <code>notNull</code>; ค่าที่ไม่ทราบจริง ๆ จึง nullable</li>
+          <li>มี index บน foreign key และเงื่อนไขที่ค้นหาบ่อย โดยไม่สร้าง index ทุก column</li>
+          <li>กำหนดพฤติกรรมเมื่อข้อมูลแม่ถูกลบ เช่น cascade, restrict หรือ set null</li>
+          <li>ไม่มีข้อมูลลับหรือข้อมูลติดตามเกินความจำเป็นด้าน privacy</li>
+        </ul>
+      </section>
+
+      <section>
+        <p class="eyebrow">workflow ปัจจุบัน</p>
+        <h2>เปลี่ยน schema ในเครื่องพัฒนา</h2>
+        <div class="flow">
+          <div><b>1 · อธิบายกฎ</b>เขียนว่าธุรกิจต้องการจำอะไรและห้ามอะไร</div>
+          <div><b>2 · แก้ TypeScript</b>แก้ <code>packages/db/src/schema/index.ts</code></div>
+          <div><b>3 · ตรวจโค้ด</b>รัน lint และ type-check</div>
+          <div><b>4 · Preview</b>อ่าน diff/SQL และคำเตือนจาก Drizzle</div>
+          <div><b>5 · Push</b>ยืนยันเมื่อเข้าใจผลกระทบ แล้วตรวจผ่าน Studio</div>
+        </div>
+        <pre style="margin-top:18px"><code>bun run lint
+bun run check-types
+bun db:push
+bun db:studio</code></pre>
+        <p style="margin-top:14px;color:var(--muted)"><code>db:push</code> อ่าน schema TypeScript, ตรวจโครงสร้างฐานข้อมูลปัจจุบัน, คำนวณ SQL ที่ต่างกัน แล้วนำไปใช้โดยไม่สร้าง migration file</p>
+      </section>
+
+      <section>
+        <p class="eyebrow">ระดับความเสี่ยง</p>
+        <h2>การเปลี่ยนแต่ละชนิดไม่เท่ากัน</h2>
+        <div class="risk-grid">
+          <article class="risk safe"><strong>ค่อนข้างปลอดภัย</strong>เพิ่ม nullable column, เพิ่ม table ใหม่, เพิ่ม index โดยเข้าใจผลกระทบต่อเวลา</article>
+          <article class="risk care"><strong>ต้องเตรียมข้อมูล</strong>เพิ่ม not-null column, เปลี่ยนชนิดข้อมูล, เปลี่ยน unique rule, เปลี่ยน foreign key</article>
+          <article class="risk danger"><strong>เสี่ยงข้อมูลหาย</strong>ลบ table/column, rename ผิดเป็น drop+add, ลดขนาด type, ลบ enum value</article>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">Expand → Migrate → Contract</p>
+        <h2>ตัวอย่าง: เพิ่ม <code>timezone</code> ที่ห้ามว่าง</h2>
+        <p>อย่าเพิ่ม <code>notNull()</code> ทันทีเมื่อมีข้อมูลเก่า เพราะ row เดิมยังไม่มีค่า ใช้การเปลี่ยนเป็นระยะ:</p>
+        <div class="timeline">
+          <div><strong>Expand:</strong> เพิ่ม <code>timezone</code> แบบ nullable แล้ว push</div>
+          <div><strong>Migrate data:</strong> เติมค่าให้ row เดิม และอัปเดตแอปให้เขียนค่าใหม่</div>
+          <div><strong>Verify:</strong> ตรวจว่าไม่มี row ใดเป็น null และแอปเวอร์ชันเก่าไม่ได้ใช้งานแล้ว</div>
+          <div><strong>Contract:</strong> เปลี่ยน column เป็น <code>notNull()</code> แล้ว push อีกครั้ง</div>
+        </div>
+        <div class="principle"><strong>Rename ก็ใช้แนวคิดเดียวกัน:</strong> เพิ่มชื่อใหม่ → copy/dual-write → เปลี่ยนการอ่าน → ตรวจ → ค่อยลบชื่อเก่า</div>
+      </section>
+
+      <section>
+        <p class="eyebrow">เมื่อขึ้น production</p>
+        <h2>วันนี้ใช้ push; อนาคตต้องมีแผน migration</h2>
+        <div class="grid">
+          <article class="card"><h3>ตอนนี้: local development</h3><p>โปรเจกต์กำหนดให้ใช้ <code>bun db:push</code> และไม่สร้าง migration files เหมาะกับช่วง foundation ที่ฐานข้อมูลยังไม่มีข้อมูลสำคัญ</p></article>
+          <article class="card"><h3>ก่อน production</h3><p>ต้องตัดสินใจ workflow ใหม่: versioned migrations, backup, staging rehearsal, rollback/forward-fix และสิทธิ์ผู้อนุมัติ ห้ามเปลี่ยน production ด้วยการเดาหรือคลิกใน Studio</p></article>
+        </div>
+      </section>
+
+      <section class="quiz">
+        <p class="eyebrow">แบบฝึกหัด</p>
+        <h2>ตาราง <code>devices</code> มีข้อมูลอยู่แล้ว ต้องเพิ่ม <code>serial_number</code> ที่ห้ามว่าง คุณจะทำอย่างไร?</h2>
+        <div class="answers">
+          <button data-answer="wrong">เพิ่ม <code>text(...).notNull()</code> แล้ว push ทันที</button>
+          <button data-answer="right">เพิ่มแบบ nullable → เติมข้อมูลเก่า → ตรวจ → ค่อยเปลี่ยนเป็น not-null</button>
+          <button data-answer="wrong">ลบตาราง devices แล้วสร้างใหม่</button>
+        </div>
+        <p id="feedback" aria-live="polite"></p>
+      </section>
+
+      <footer>
+        แบบออกแบบฉบับเต็ม: <a href="../database-design.md">Database design blueprint</a><br />
+        <a href="./drizzle-studio-basics.html">← กลับบทเรียน Drizzle Studio</a><br />
+        อ้างอิง: <a href="https://orm.drizzle.team/docs/sql-schema-declaration">Schema declaration</a> ·
+        <a href="https://orm.drizzle.team/docs/drizzle-kit-push">Drizzle Kit push</a> ·
+        <a href="https://orm.drizzle.team/docs/migrations">Migration fundamentals</a>
+      </footer>
+    </main>
+    <script>
+      const feedback = document.querySelector("#feedback");
+      document.querySelectorAll("button[data-answer]").forEach((button) => {
+        button.addEventListener("click", () => {
+          feedback.textContent = button.dataset.answer === "right"
+            ? "ถูกต้อง — นี่คือ expand → migrate → verify → contract ซึ่งรักษา row เก่าไว้"
+            : "ยังเสี่ยง — row เก่าไม่มี serial_number การบังคับ not-null หรือลบ table อาจทำให้ push ล้มเหลวหรือข้อมูลหาย";
+        });
+      });
+    </script>
+  </body>
+</html>

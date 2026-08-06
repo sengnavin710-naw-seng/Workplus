@@ -1,0 +1,25 @@
+{
+  "name": "@repo/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "bootstrap-owner": "bun --env-file=../../.env --conditions=react-server scripts/bootstrap-owner.ts",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "latest",
+    "@repo/db": "workspace:*",
+    "better-auth": "latest",
+    "server-only": "latest"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "latest",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>รู้จักฐานข้อมูล Workforce Platform ผ่าน Drizzle Studio</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17201b;
+        --muted: #64706a;
+        --paper: #f4f1e8;
+        --panel: #fffdf7;
+        --line: #d8d2c3;
+        --green: #1f6b4f;
+        --green-soft: #dcece3;
+        --amber: #9a5b13;
+        --amber-soft: #fff0ce;
+        --red: #9d3d35;
+        --shadow: 0 18px 60px rgba(49, 45, 34, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 85% 5%, rgba(31, 107, 79, 0.11), transparent 28rem),
+          linear-gradient(180deg, #f8f6ef, var(--paper));
+        font-family: "Leelawadee UI", "Noto Sans Thai", system-ui, sans-serif;
+        line-height: 1.65;
+      }
+      main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0 90px; }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { max-width: 820px; font-size: clamp(2.2rem, 6vw, 4.8rem); line-height: 1.03; letter-spacing: -0.045em; }
+      h2 { margin-bottom: 20px; font-size: clamp(1.55rem, 3vw, 2.25rem); letter-spacing: -0.025em; }
+      h3 { margin-bottom: 8px; font-size: 1.02rem; }
+      code { font-family: Consolas, monospace; font-size: 0.92em; }
+      .eyebrow { color: var(--green); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+      .lede { max-width: 720px; color: var(--muted); font-size: 1.12rem; }
+      .status {
+        display: inline-flex; align-items: center; gap: 9px; margin: 18px 0 0; padding: 9px 13px;
+        border: 1px solid #a9c9b7; border-radius: 999px; background: var(--green-soft); color: #174c39; font-weight: 700;
+      }
+      .status::before { width: 9px; height: 9px; border-radius: 50%; background: var(--green); content: ""; }
+      section { margin-top: 72px; }
+      .card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .card { padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255, 253, 247, 0.9); box-shadow: var(--shadow); }
+      .card p { margin-bottom: 0; color: var(--muted); }
+      .number { display: grid; width: 32px; height: 32px; margin-bottom: 20px; place-items: center; border-radius: 9px; background: var(--ink); color: white; font-weight: 800; }
+      .hierarchy { display: flex; align-items: stretch; gap: 8px; overflow-x: auto; padding: 5px 0 10px; }
+      .hierarchy div { min-width: 160px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+      .hierarchy span { display: block; color: var(--muted); font-size: 0.82rem; }
+      .arrow { display: grid; min-width: auto !important; place-items: center; border: 0 !important; background: transparent !important; color: var(--green); font-size: 1.4rem; }
+      .callout { margin-top: 20px; padding: 18px 20px; border-left: 4px solid var(--amber); border-radius: 4px 14px 14px 4px; background: var(--amber-soft); }
+      .callout strong { color: #6e3d08; }
+      .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+      pre { margin: 0; padding: 20px; overflow-x: auto; border-radius: 16px; background: #17201b; color: #eef8f1; }
+      .table-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .table-item { padding: 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); }
+      .table-item b { display: block; font-family: Consolas, monospace; font-size: 0.92rem; }
+      .table-item span { color: var(--muted); font-size: 0.88rem; }
+      .danger { border-color: #e0aaa5; background: #fff3f1; }
+      .danger .number { background: var(--red); }
+      .quiz { padding: 28px; border-radius: 20px; background: #17201b; color: white; }
+      .quiz p { color: #cdd8d1; }
+      .answers { display: flex; flex-wrap: wrap; gap: 10px; }
+      button { padding: 10px 14px; border: 1px solid #668073; border-radius: 10px; background: #26352d; color: white; cursor: pointer; font: inherit; }
+      button:hover, button:focus-visible { border-color: #9cd0b3; background: #315241; outline: none; }
+      #feedback { min-height: 28px; margin: 18px 0 0; color: #aee6c4; font-weight: 700; }
+      footer { margin-top: 60px; color: var(--muted); font-size: 0.9rem; }
+      a { color: var(--green); }
+      @media (max-width: 760px) {
+        main { padding-top: 36px; }
+        .card-grid, .steps, .table-list { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Workforce Platform · บทเรียน 01</p>
+        <h1>อ่านฐานข้อมูลให้ออก ก่อนแก้ข้อมูล</h1>
+        <p class="lede">คู่มือหน้าจอ Drizzle Studio ที่คุณเปิดอยู่ โดยใช้ฐานข้อมูลจริงของโปรเจกต์เป็นตัวอย่าง</p>
+        <div class="status">เชื่อม PostgreSQL สำเร็จ — แต่ยังมี 0 ตาราง</div>
+      </header>
+
+      <section>
+        <p class="eyebrow">โครงสร้างความคิด</p>
+        <h2>คุณกำลังมองอะไรอยู่?</h2>
+        <div class="hierarchy" aria-label="ลำดับชั้นฐานข้อมูล">
+          <div><strong>Database</strong><span>workforce_platform</span></div><div class="arrow">→</div>
+          <div><strong>Schema</strong><span>public</span></div><div class="arrow">→</div>
+          <div><strong>Table</strong><span>เช่น users</span></div><div class="arrow">→</div>
+          <div><strong>Row</strong><span>ผู้ใช้หนึ่งคน</span></div><div class="arrow">→</div>
+          <div><strong>Column</strong><span>เช่น email</span></div>
+        </div>
+        <div class="callout"><strong>ข้อความ “0 tables in public schema” ไม่ใช่ error</strong> หมายถึงเชื่อมต่อฐานข้อมูลได้แล้ว แต่ยังไม่ได้นำ Drizzle schema ไปสร้างเป็นตารางจริง</div>
+      </section>
+
+      <section>
+        <p class="eyebrow">เมนูด้านซ้าย</p>
+        <h2>ฟีเจอร์หลักในหน้าจอ</h2>
+        <div class="card-grid">
+          <article class="card"><div class="number">1</div><h3>Spotlight</h3><p>ค้นหาและกระโดดไปยัง table หรือเครื่องมืออย่างรวดเร็ว กด <code>Ctrl+K</code> เพื่อเปิด</p></article>
+          <article class="card"><div class="number">2</div><h3>SQL console</h3><p>เขียน SQL โดยตรง เช่น <code>SELECT</code> เพื่ออ่านข้อมูล เป็นเครื่องมือทรงพลังและสามารถแก้หรือลบข้อมูลได้เช่นกัน</p></article>
+          <article class="card"><div class="number">3</div><h3>Drizzle runner</h3><p>ทดลองคำสั่งด้วย Drizzle query API เหมาะเมื่อคุณเริ่มคุ้นกับ TypeScript และต้องการดู SQL ที่ Drizzle สร้าง</p></article>
+          <article class="card"><div class="number">4</div><h3>Schema</h3><p>ดูโครงสร้าง table, column, type, primary key, foreign key และความสัมพันธ์ ไม่ใช่ข้อมูลแต่ละแถว</p></article>
+          <article class="card"><div class="number">5</div><h3>schema: public</h3><p>ตัวเลือก namespace ของ PostgreSQL โปรเจกต์นี้เก็บตารางแอปไว้ใน <code>public</code></p></article>
+          <article class="card"><div class="number">6</div><h3>Search / Refresh / +</h3><p>ค้นหา table, โหลดรายการใหม่ และสร้าง table ผ่าน UI ตามลำดับ สำหรับโปรเจกต์นี้ไม่ควรใช้ปุ่ม + เพื่อสร้าง schema</p></article>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">ขั้นตอนถัดไป</p>
+        <h2>ทำให้ตารางปรากฏอย่างถูกวิธี</h2>
+        <div class="steps">
+          <div>
+            <p>หยุด Studio ด้วย <code>Ctrl+C</code> แล้วใช้ schema TypeScript ของโปรเจกต์สร้างตาราง จากนั้นเปิด Studio ใหม่</p>
+            <div class="callout"><strong>อ่าน SQL ที่ Drizzle แสดงก่อนยืนยัน</strong> โดยเฉพาะข้อความเตือนเกี่ยวกับการลบหรือเปลี่ยนชนิดข้อมูล</div>
+          </div>
+          <pre><code>bun db:push
+bun db:studio</code></pre>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">สิ่งที่จะเห็น</p>
+        <h2>10 ตารางพื้นฐานของโปรเจกต์</h2>
+        <div class="table-list">
+          <div class="table-item"><b>users</b><span>บัญชีผู้ใช้หลัก</span></div>
+          <div class="table-item"><b>sessions</b><span>session ของผู้ใช้เว็บ</span></div>
+          <div class="table-item"><b>accounts</b><span>วิธีเข้าสู่ระบบและรหัสผ่านที่ hash แล้ว</span></div>
+          <div class="table-item"><b>verifications</b><span>token ยืนยันตัวตนที่หมดอายุได้</span></div>
+          <div class="table-item"><b>organizations</b><span>ขอบเขต tenant หรือบริษัท</span></div>
+          <div class="table-item"><b>organization_members</b><span>ผู้ใช้ บทบาท และองค์กร</span></div>
+          <div class="table-item"><b>invitations</b><span>คำเชิญเข้าร่วมองค์กร</span></div>
+          <div class="table-item"><b>teams</b><span>ทีมภายในองค์กร</span></div>
+          <div class="table-item"><b>team_members</b><span>สมาชิกของแต่ละทีม</span></div>
+          <div class="table-item"><b>devices</b><span>ข้อมูลลงทะเบียนอุปกรณ์ขั้นพื้นฐาน</span></div>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">กฎความปลอดภัย</p>
+        <h2>อ่านได้เต็มที่ แก้ไขอย่างตั้งใจ</h2>
+        <div class="card-grid">
+          <article class="card"><div class="number">✓</div><h3>เริ่มจากการอ่าน</h3><p>เปิด table, ดู columns และใช้ <code>SELECT</code> ก่อน การอ่านไม่เปลี่ยนข้อมูล</p></article>
+          <article class="card"><div class="number">✓</div><h3>แก้ schema ในโค้ด</h3><p>แก้ที่ <code>packages/db/src/schema/index.ts</code> แล้วใช้ <code>bun db:push</code> เพื่อให้โค้ดกับฐานข้อมูลตรงกัน</p></article>
+          <article class="card danger"><div class="number">!</div><h3>อย่ากด Create table</h3><p>การสร้างผ่าน UI ทำให้ฐานข้อมูลต่างจาก schema TypeScript และทีมติดตามการเปลี่ยนแปลงได้ยาก</p></article>
+          <article class="card danger"><div class="number">!</div><h3>ระวัง UPDATE / DELETE</h3><p>Studio แก้และลบข้อมูลจริงทันที โดยเฉพาะคำสั่งที่ไม่มี <code>WHERE</code> อาจกระทบทุกแถว</p></article>
+        </div>
+      </section>
+
+      <section class="quiz">
+        <p class="eyebrow">แบบฝึกหัด 20 วินาที</p>
+        <h2>ถ้าเห็น “0 tables” ควรทำอะไร?</h2>
+        <p>เลือกคำตอบที่ปลอดภัยและสอดคล้องกับโปรเจกต์นี้</p>
+        <div class="answers">
+          <button data-correct="false">กด Create table แล้วสร้าง users เอง</button>
+          <button data-correct="true">หยุด Studio แล้วรัน bun db:push</button>
+          <button data-correct="false">เปลี่ยน DATABASE_URL ทันที</button>
+        </div>
+        <p id="feedback" aria-live="polite"></p>
+      </section>
+
+      <footer>
+        บทถัดไป: <a href="./schema-design-and-change.html">ออกแบบและเปลี่ยน database schema</a><br />
+        อ้างอิง: <a href="https://orm.drizzle.team/drizzle-studio/overview">Drizzle Studio overview</a> ·
+        <a href="https://orm.drizzle.team/docs/kit-overview">Drizzle Kit overview</a>
+      </footer>
+    </main>
+    <script>
+      const feedback = document.querySelector("#feedback");
+      document.querySelectorAll("button[data-correct]").forEach((button) => {
+        button.addEventListener("click", () => {
+          feedback.textContent = button.dataset.correct === "true"
+            ? "ถูกต้อง — schema ใน TypeScript เป็นแหล่งความจริง แล้ว db:push จะสร้างตารางให้ตรงกัน"
+            : "ยังไม่ใช่ — การเชื่อมต่อสำเร็จแล้ว ปัญหาคือยังไม่ได้ push schema และไม่ควรสร้าง table ด้วยมือ";
+        });
+      });
+    </script>
+  </body>
+</html>

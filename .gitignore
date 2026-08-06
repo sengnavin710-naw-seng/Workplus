@@ -1,0 +1,17 @@
+node_modules/
+.turbo/
+.next/
+dist/
+target/
+src-tauri/gen/
+.env
+.env.local
+.env.*.local
+!.env.example
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
