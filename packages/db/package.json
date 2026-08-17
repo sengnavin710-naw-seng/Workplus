@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
     "db:push": "bunx drizzle-kit push",
+    "repair-employee-access": "bun --env-file=../../.env --conditions=react-server scripts/repair-employee-access.ts",
     "db:studio": "bunx drizzle-kit studio"
   },
   "dependencies": {

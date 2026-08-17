@@ -3,17 +3,31 @@
   background: #f1f5f9;
   font-family: "Segoe UI", sans-serif;
 }
-
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 380px; min-height: 100vh; }
-.agent-shell { max-width: 620px; margin: 0 auto; padding: 48px 28px; }
-.eyebrow { margin: 0 0 8px; color: #64748b; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+button { font: inherit; }
+.agent-shell { max-width: 650px; margin: 0 auto; padding: 38px 28px; }
+.eyebrow { margin: 0 0 8px; color: #64748b; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 h1 { margin: 0; font-size: 30px; }
+h2 { margin: 0; font-size: 18px; }
 .intro, .notice { color: #475569; line-height: 1.6; }
-.status-card { margin: 28px 0 20px; }
-.status-card h2 { margin: 0 0 14px; font-size: 18px; }
-dl { margin: 0; }
+.status-card, .consent-card { margin: 24px 0 18px; }
+.card-title { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.status-icon { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 999px; background: #e2e8f0; color: #334155; font-weight: 700; }
+dl { margin: 0 0 18px; }
 dl div { display: flex; justify-content: space-between; gap: 20px; padding: 12px 0; border-top: 1px solid #e2e8f0; }
 dt { color: #475569; }
-dd { margin: 0; font-weight: 600; }
+dd { margin: 0; font-weight: 600; text-align: right; }
+.tracking-off { color: #475569; }
 .notice { font-size: 14px; }
+.message { border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; padding: 12px 14px; color: #334155; font-size: 14px; }
+.notice-text { white-space: pre-wrap; color: #334155; line-height: 1.65; }
+.consent-card ul { padding-left: 22px; color: #475569; font-size: 14px; line-height: 1.7; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.secondary-button, .disconnect-button { border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; padding: 9px 14px; color: #334155; font-weight: 600; cursor: pointer; }
+.secondary-button:hover, .disconnect-button:hover { border-color: #0f172a; color: #0f172a; }
+@media (max-width: 520px) {
+  .agent-shell { padding: 28px 18px; }
+  .actions { flex-direction: column-reverse; }
+  .actions > * { width: 100%; }
+}

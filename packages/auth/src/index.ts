@@ -31,11 +31,15 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const authEmailFrom = process.env.AUTH_EMAIL_FROM;
 
 if (Boolean(googleClientId) !== Boolean(googleClientSecret)) {
-  throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together");
+  throw new Error(
+    "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together",
+  );
 }
 
 if (Boolean(resendApiKey) !== Boolean(authEmailFrom)) {
-  throw new Error("RESEND_API_KEY and AUTH_EMAIL_FROM must be configured together");
+  throw new Error(
+    "RESEND_API_KEY and AUTH_EMAIL_FROM must be configured together",
+  );
 }
 
 export const auth = betterAuth({
@@ -69,6 +73,7 @@ export const auth = betterAuth({
           google: {
             clientId: googleClientId,
             clientSecret: googleClientSecret,
+            prompt: "select_account",
           },
         }
       : {},
@@ -80,7 +85,8 @@ export const auth = betterAuth({
       otpLength: 6,
       storeOTP: "hashed",
       sendVerificationOTP: ({ email, otp, type }) => {
-        if (type !== "email-verification" || !resendApiKey || !authEmailFrom) return Promise.resolve();
+        if (type !== "email-verification" || !resendApiKey || !authEmailFrom)
+          return Promise.resolve();
 
         void sendSignInOtpEmail({
           apiKey: resendApiKey,
@@ -102,3 +108,4 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
+export { sendEmployeeInvitationEmail } from "./employee-invitation-email";

@@ -4,7 +4,7 @@
 
 The web dashboard renders administration interfaces and exposes the Better Auth and tRPC route handlers. It must keep database and authentication modules on the server.
 
-The desktop agent is a visible Tauri shell. It currently displays installation, connection, and enrollment state placeholders and collects nothing. Future native capabilities belong in focused Rust modules and require explicit permissions, visible state, and privacy review.
+The desktop agent is a visible Tauri application. It authorizes an employee through the system browser, presents the current privacy notice when consent is required, stores its separate credential in the operating-system credential manager, and sends a minimal connection heartbeat. It collects no activity. Future native capabilities belong in focused Rust modules and require explicit permissions, visible state, and privacy review.
 
 The tRPC package is the typed dashboard API boundary. It provides public and browser-session-authenticated procedures; it does not provide an agent ingestion API. The database package owns PostgreSQL access, relational constraints, and tenant keys.
 
@@ -24,7 +24,9 @@ Teams are foundational domain tables but are not enabled through Better Auth's o
 
 ## Identity boundaries
 
-Browser users authenticate with Better Auth's cookie sessions. Desktop devices must never store or present those browser cookies as device identity. Future enrollment will issue separately scoped, revocable device credentials over a versioned HTTP agent API. No device token schema or endpoint is included yet.
+Browser users authenticate with Better Auth's cookie sessions. Desktop devices never store or present those browser cookies as device identity. Enrollment uses an expiring, one-time poll secret and issues a separately scoped, revocable device credential over the versioned HTTP agent API. Only credential hashes are stored server-side. The plaintext device credential is shown once to the Agent and stored in the operating-system credential manager.
+
+The Agent heartbeat reports only device connection health, operating-system label, and Agent version. Every heartbeat rechecks that the employee and device remain active and that the latest published policy has current consent. A new policy version therefore blocks the heartbeat until browser authorization and consent are completed again. Reauthorization rotates the credential without creating a duplicate device. Heartbeats never enable tracking.
 
 Every tenant-owned table includes `organizationId`. API queries must derive the active organization from authorized membership and include the tenant predicate; a supplied organization ID is never sufficient authorization.
 

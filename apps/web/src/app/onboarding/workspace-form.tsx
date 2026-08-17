@@ -3,6 +3,21 @@
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { accountNameSchema, organizationNameSchema, workspaceSlugSchema } from "@repo/validation";
+import {
+  AppWindow,
+  BadgeDollarSign,
+  ClipboardList,
+  Clock3,
+  Headset,
+  Megaphone,
+  Monitor,
+  ShieldCheck,
+  UserRoundCheck,
+  UserRoundCog,
+  UsersRound,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { authClient } from "@/auth/client";
@@ -13,12 +28,12 @@ interface WorkspaceFormProps {
 }
 
 const roleOptions = [
-  { label: "Executive", value: "executive" },
-  { label: "HR / People Ops", value: "people-ops" },
-  { label: "Operations", value: "operations" },
-  { label: "Engineering / Product", value: "engineering-product" },
-  { label: "IT / Security", value: "it-security" },
-  { label: "Other", value: "other" },
+  { icon: UsersRound, iconClassName: "bg-[#e8f2ff] text-[#2f6fbd]", label: "Manager", value: "manager" },
+  { icon: UserRoundCog, iconClassName: "bg-[#f1ecff] text-[#7656c9]", label: "HR", value: "hr" },
+  { icon: Megaphone, iconClassName: "bg-[#fff1df] text-[#b96912]", label: "Marketing", value: "marketing" },
+  { icon: BadgeDollarSign, iconClassName: "bg-[#e7f6ea] text-[#2f7d46]", label: "Finance", value: "finance" },
+  { icon: UserRoundCheck, iconClassName: "bg-[#e7f7f5] text-[#087f73]", label: "CSR Leader", value: "csr-leader" },
+  { icon: Headset, iconClassName: "bg-[#fdeaf1] text-[#b94f75]", label: "Customer Service", value: "customer-service" },
 ] as const;
 
 const teamSizeOptions = [
@@ -31,18 +46,17 @@ const teamSizeOptions = [
 ] as const;
 
 const focusOptions = [
-  { description: "Create a clear, user-visible record of working time.", label: "Transparent time tracking", value: "time-tracking" },
-  { description: "Prepare a reliable review and approval workflow.", label: "Simpler timesheets", value: "timesheets" },
-  { description: "Organize employees without mixing data across workspaces.", label: "Team organization", value: "team-organization" },
-  { description: "Plan how company devices will join the workspace.", label: "Device enrollment", value: "device-enrollment" },
-  { description: "Define privacy expectations before collecting activity data.", label: "Privacy and consent", value: "privacy-consent" },
-  { description: "Prepare a future view of application usage under policy.", label: "Application usage", value: "application-usage" },
+  { description: "Clear, visible work hours.", icon: Clock3, iconClassName: "bg-[#e7f7f5] text-[#087f73]", label: "Transparent time tracking", value: "time-tracking" },
+  { description: "Easier review and approval.", icon: ClipboardList, iconClassName: "bg-[#f1ecff] text-[#7656c9]", label: "Simpler timesheets", value: "timesheets" },
+  { description: "Keep workspace data separate.", icon: Users, iconClassName: "bg-[#fff1df] text-[#b96912]", label: "Team organization", value: "team-organization" },
+  { description: "Plan secure device setup.", icon: Monitor, iconClassName: "bg-[#e8f2ff] text-[#2f6fbd]", label: "Device enrollment", value: "device-enrollment" },
+  { description: "Set privacy expectations first.", icon: ShieldCheck, iconClassName: "bg-[#e7f6ea] text-[#2f7d46]", label: "Privacy and consent", value: "privacy-consent" },
+  { description: "Prepare policy-based insights.", icon: AppWindow, iconClassName: "bg-[#fdeaf1] text-[#b94f75]", label: "Application usage", value: "application-usage" },
 ] as const;
 
 type WorkspaceRole = (typeof roleOptions)[number]["value"];
 type TeamSize = (typeof teamSizeOptions)[number]["value"];
 type FocusValue = (typeof focusOptions)[number]["value"];
-
 function createWorkspaceSlug(name: string) {
   const normalized = name
     .normalize("NFKD")
@@ -77,10 +91,14 @@ function ProgressHeader({ step }: { step: 1 | 2 }) {
 }
 
 function ChoiceButton({
+  icon: Icon,
+  iconClassName,
   isSelected,
   label,
   onClick,
 }: {
+  icon?: LucideIcon;
+  iconClassName?: string;
   isSelected: boolean;
   label: string;
   onClick: () => void;
@@ -88,7 +106,7 @@ function ChoiceButton({
   return (
     <button
       aria-pressed={isSelected}
-      className={`rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] ${
+      className={`inline-flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] ${
         isSelected
           ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_9%,var(--canvas))] text-[var(--ink)]"
           : "border-[var(--surface-soft)] bg-[var(--canvas)] hover:border-[color-mix(in_srgb,var(--border-medium)_48%,transparent)]"
@@ -96,6 +114,11 @@ function ChoiceButton({
       onClick={onClick}
       type="button"
     >
+      {Icon ? (
+        <span aria-hidden="true" className={`grid size-7 shrink-0 place-items-center rounded-md ${iconClassName ?? "bg-[var(--surface-soft)] text-[var(--ink)]"}`}>
+          <Icon aria-hidden="true" className="size-4" strokeWidth={1.9} />
+        </span>
+      ) : null}
       {label}
     </button>
   );
@@ -218,7 +241,7 @@ export function WorkspaceForm({ accountEmail, initialName }: WorkspaceFormProps)
             What do you want to do with your workspace?
           </h1>
           <p className="mt-3 text-sm leading-6 text-[color-mix(in_srgb,var(--ink)_66%,transparent)]">
-            Select all that apply. You can change these choices later.
+            Choose all that apply. Change anytime.
           </p>
         </div>
 
@@ -230,9 +253,9 @@ export function WorkspaceForm({ accountEmail, initialName }: WorkspaceFormProps)
               return (
                 <button
                   aria-pressed={isSelected}
-                  className={`group flex min-h-24 items-start gap-3 rounded-xl border p-4 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] ${
+                  className={`group relative flex min-h-28 items-start gap-3 rounded-xl border p-4 text-left transition-[border-color,background-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] ${
                     isSelected
-                      ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_8%,var(--canvas))]"
+                      ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_6%,var(--canvas))] shadow-[0_8px_22px_rgba(39,37,30,0.07)]"
                       : "border-[var(--surface-soft)] bg-[var(--canvas)] hover:border-[color-mix(in_srgb,var(--border-medium)_48%,transparent)]"
                   }`}
                   key={option.value}
@@ -241,19 +264,25 @@ export function WorkspaceForm({ accountEmail, initialName }: WorkspaceFormProps)
                 >
                   <span
                     aria-hidden="true"
-                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-xs ${
-                      isSelected
-                        ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                        : "border-[color-mix(in_srgb,var(--border-medium)_35%,transparent)]"
-                    }`}
+                    className={`grid size-10 shrink-0 place-items-center rounded-lg ${option.iconClassName}`}
                   >
-                    {isSelected ? "✓" : ""}
+                    <option.icon aria-hidden="true" className="size-5" strokeWidth={1.8} />
                   </span>
-                  <span>
-                    <span className="block text-sm font-medium">{option.label}</span>
+                  <span className="min-w-0 pr-5">
+                    <span className="block text-sm font-medium leading-5">{option.label}</span>
                     <span className="mt-1 block text-xs leading-5 text-[color-mix(in_srgb,var(--ink)_62%,transparent)]">
                       {option.description}
                     </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`absolute right-3 top-3 grid size-5 place-items-center rounded-full border text-[11px] font-semibold ${
+                      isSelected
+                        ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                        : "border-[color-mix(in_srgb,var(--border-medium)_28%,transparent)] text-transparent"
+                    }`}
+                  >
+                    ✓
                   </span>
                 </button>
               );
@@ -294,7 +323,7 @@ export function WorkspaceForm({ accountEmail, initialName }: WorkspaceFormProps)
       <div className="mt-9">
         <h1 className="text-3xl font-medium leading-tight tracking-[-0.035em] sm:text-4xl">Set up your workspace</h1>
         <p className="mt-3 text-sm leading-6 text-[color-mix(in_srgb,var(--ink)_66%,transparent)]">
-          Tell us the basics so we can prepare the right starting point.
+          Add a few details to get started.
         </p>
       </div>
 
@@ -335,6 +364,8 @@ export function WorkspaceForm({ accountEmail, initialName }: WorkspaceFormProps)
           {roleOptions.map((option) => (
             <ChoiceButton
               isSelected={role === option.value}
+              icon={option.icon}
+              iconClassName={option.iconClassName}
               key={option.value}
               label={option.label}
               onClick={() => {

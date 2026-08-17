@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "auth:bootstrap-owner": "bun --filter @repo/auth bootstrap-owner",
     "db:push": "bun --filter @repo/db db:push",
+    "db:repair-employee-access": "bun --filter @repo/db repair-employee-access",
     "db:studio": "bun --filter @repo/db db:studio"
   },
   "devDependencies": {

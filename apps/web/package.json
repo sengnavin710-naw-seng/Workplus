@@ -4,22 +4,28 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "next build",
     "dev": "bun --env-file=../../.env run next dev",
     "lint": "eslint .",
+    "start": "next start",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@repo/api": "workspace:*",
     "@repo/auth": "workspace:*",
+    "@repo/db": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/validation": "workspace:*",
     "@trpc/client": "latest",
     "@trpc/server": "latest",
     "better-auth": "latest",
+    "drizzle-orm": "latest",
+    "lucide-react": "^1.30.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "server-only": "latest"
+    "server-only": "latest",
+    "zod": "latest"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

@@ -1,6 +1,6 @@
 # Workforce Platform
 
-A privacy-first foundation for a workforce analytics and employee time-tracking platform. This repository currently provides infrastructure only: employee monitoring, screenshots, activity collection, idle detection, timesheets, productivity scoring, and analytics are not implemented.
+A privacy-first foundation for a workforce analytics and employee time-tracking platform. Privacy policy versioning, employee consent evidence, retention configuration, privacy audit events, visible desktop enrollment, revocable device credentials, and connection heartbeats are implemented. Employee monitoring, screenshots, activity collection, idle detection, timesheets, productivity scoring, and analytics are not implemented.
 
 ## Technology
 
@@ -73,8 +73,14 @@ Normal SaaS customers should use `/signup` and create their workspace through on
 - `bun db:push` — push the Drizzle schema directly
 - `bun db:studio` — open Drizzle Studio
 
+## Beta deployment
+
+The zero-cost beta deployment uses Render Free for the Next.js web service,
+Neon Free for PostgreSQL, Hostinger for `workplus.store` DNS, and Resend for
+transactional email. Follow [the Render + Neon deployment guide](docs/render-neon-deployment.md).
+
 Run only the web app with `bun --filter @repo/web dev`. Run the Tauri app with `bun --filter @repo/agent tauri dev` after installing Rust and the Windows prerequisites. The desktop command intentionally has not been run during foundation setup.
 
 ## Current limitations
 
-Public email/password registration, workspace onboarding, owner login/logout, email-code account recovery, route protection, and organization/role display are implemented. Sign-in code delivery requires Resend configuration. There is no subscription billing, employee enrollment link, device credential protocol, background processing, monitoring, tracking, screenshots, timesheets, or analytics. Better Auth sessions authenticate browser users only. Desktop employees will not require web accounts; the agent must use a separate, revocable device credential.
+Public email/password registration, workspace onboarding, owner login/logout, email-code account recovery, route protection, organization/role display, privacy policy versioning, employee consent, retention configuration, privacy audit events, browser-authorized desktop enrollment, separate device credentials, heartbeat status, and device revocation are implemented. Sign-in code delivery requires Resend configuration. There is no subscription billing, background activity processing, tracking, screenshots, timesheets, or analytics. Better Auth sessions authenticate browser users only and are never stored by the desktop Agent. Connecting a device does not start tracking.

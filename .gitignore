@@ -3,7 +3,7 @@ node_modules/
 .next/
 dist/
 target/
-src-tauri/gen/
+**/src-tauri/gen/
 .env
 .env.local
 .env.*.local

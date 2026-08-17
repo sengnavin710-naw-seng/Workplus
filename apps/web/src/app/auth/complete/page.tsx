@@ -1,11 +1,7 @@
 import { redirect } from "next/navigation";
-import { getDashboardIdentity } from "@/auth/server";
+import { getSignedInDestination } from "@/auth/server";
 
 export default async function AuthCompletePage() {
-  const identity = await getDashboardIdentity();
-
-  if (!identity) redirect("/login?error=google");
-  if (identity.activeOrganization) redirect("/dashboard");
-
-  redirect("/onboarding");
+  const destination = await getSignedInDestination();
+  redirect(destination ?? "/login?error=google");
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@repo/ui/input";
+import { Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 interface PasswordFieldProps {
@@ -12,40 +13,6 @@ interface PasswordFieldProps {
   labelAction?: ReactNode;
   name: string;
   placeholder?: string;
-}
-
-function LockIcon() {
-  return (
-    <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
-      <path
-        d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.7"
-      />
-      <rect height="11" rx="3" stroke="currentColor" strokeWidth="1.7" width="14" x="5" y="10" />
-      <circle cx="12" cy="14.5" fill="currentColor" r="1.1" />
-      <path d="M12 15.5v2" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
-    </svg>
-  );
-}
-
-function EyeIcon({ isVisible }: { isVisible: boolean }) {
-  return (
-    <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
-      <path
-        d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-      <circle cx="12" cy="12" r="2.75" stroke="currentColor" strokeWidth="1.7" />
-      {isVisible ? null : (
-        <path d="m4 4 16 16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
-      )}
-    </svg>
-  );
 }
 
 export function PasswordField({
@@ -73,7 +40,7 @@ export function PasswordField({
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 left-0 grid w-11 place-items-center text-[color-mix(in_srgb,var(--ink)_55%,transparent)]"
         >
-          <LockIcon />
+          <LockKeyhole aria-hidden="true" className="size-5" strokeWidth={1.7} />
         </span>
         <Input
           autoComplete={autoComplete}
@@ -94,7 +61,11 @@ export function PasswordField({
           onClick={() => setIsVisible((current) => !current)}
           type="button"
         >
-          <EyeIcon isVisible={isVisible} />
+          {isVisible ? (
+            <Eye aria-hidden="true" className="size-5" strokeWidth={1.7} />
+          ) : (
+            <EyeOff aria-hidden="true" className="size-5" strokeWidth={1.7} />
+          )}
         </button>
       </div>
       {hint ? <p className="text-xs leading-5 text-[color-mix(in_srgb,var(--ink)_62%,transparent)]">{hint}</p> : null}

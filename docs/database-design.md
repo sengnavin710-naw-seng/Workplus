@@ -67,10 +67,16 @@ These tables are **current** and remain the foundation.
 | `organizations` | Tenant root | Slug unique |
 | `organization_members` | User-to-organization membership and role | Unique `(organization_id, user_id)` |
 | `invitations` | Organization invitations | Expiring lifecycle; inviter is auditable |
-| `employees` | Workforce member who may have no web account | Tenant-owned; optional `linked_user_id`; unique email within an organization when present |
-| `teams` | Team within an organization | Unique name within an organization |
-| `team_members` | Employee-to-team membership | Unique `(team_id, employee_id)`; same-tenant checks required |
-| `devices` | Foundational employee device registration | References `employee_id`; no secret or collected activity in this table |
+| `employees` | Workforce member who may have no web account | Tenant-owned; optional `linked_user_id`; current name and `job_title`; unique email within an organization when present; archive metadata supports reversible offboarding |
+| `teams` | Team within an organization, including display metadata and utilization goal | Unique name within an organization; member totals are derived from `team_members` |
+| `team_members` | Employee-to-team membership | One current team per employee via unique `(organization_id, employee_id)`; same-tenant checks required |
+| `devices` | Employee device registration and minimal connection state | References `employee_id`; stores Agent/OS version and last seen, but no secret or collected activity |
+| `device_enrollment_sessions` | Expiring browser-authorized Agent enrollment | Poll secret is hashed; one-time lifecycle; optionally reauthorizes an existing device |
+| `device_credentials` | Revocable Agent API identity | Credential is stored only as a hash; separate from browser sessions |
+| `invitation_email_outbox` | Durable employee invitation email delivery | Created atomically with invitations; encrypted short-lived payload; unique idempotency key; retryable delivery |
+| `resend_webhook_events` | Minimal Resend webhook replay protection and delivery reconciliation | Stores provider delivery state without recipient or message content; duplicate deliveries are ignored, early events remain unmatched until the outbox records the provider email ID, and records expire after 30 days |
+
+Invitation email payloads are encrypted with a key derived from `BETTER_AUTH_SECRET` and cleared after delivery or cancellation. Rotate that secret only after the outbox has no pending or failed rows. A scheduler may call the protected internal outbox endpoint using `INVITATION_OUTBOX_SECRET`; failed deliveries use exponential backoff and keep the same provider idempotency key.
 
 ### Future hardening
 
@@ -126,15 +132,15 @@ Do not place secrets or full sensitive payloads in `metadata`. Audit sensitive r
 
 ## Module 3: desktop enrollment and device identity
 
-### `device_enrollment_codes`
+### `device_enrollment_sessions` (**current**)
 
-Short-lived, one-time enrollment challenges created by an authorized web user.
+Short-lived, one-time enrollment challenges started by the visible Agent and authorized by an authenticated employee in the browser.
 
-Core columns: `organization_id`, `employee_id`, `code_hash`, `expires_at`, `used_at`, `created_by_user_id`, `created_at`.
+Core columns: `organization_id`, `employee_id`, optional `device_id`, `poll_token_hash`, device metadata, `status`, `expires_at`, `authorized_at`, `completed_at`, `authorized_by_user_id`, `created_at`.
 
-The plaintext code is shown once and never stored.
+The plaintext poll secret is returned only to the Agent and never stored.
 
-### `device_credentials`
+### `device_credentials` (**current**)
 
 Revocable credentials used only by the versioned agent HTTP API.
 
@@ -263,6 +269,9 @@ Add indexes from measured query plans, not by indexing every column. Large appen
 
 ## Deletion and retention behavior
 
+- Removing an employee from active work is a reversible archive operation. It revokes pending invitations and devices but preserves identity, team membership, and historical records.
+- Restoring an employee returns them to `pending`; it never reactivates revoked invitations or devices automatically.
+- Permanent employee deletion is a separate privacy and retention workflow, not a dashboard delete action.
 - Authentication and membership rows may cascade when a disposable local tenant is deleted.
 - Production activity data should be removed through an auditable retention job, not an unbounded cascade inside a web request.
 - Revoking a user or device stops future ingestion; it does not silently rewrite historical records.
@@ -290,7 +299,7 @@ Public web identities, organizations/workspaces, memberships, employees, teams, 
 
 ### Phase 1 — privacy and device enrollment
 
-Add `tracking_policies`, `employee_consents`, `retention_policies`, `audit_logs`, `device_enrollment_codes`, and `device_credentials`. No activity collection yet.
+Tracking policies, employee consent, retention, audit logs, visible device enrollment, separate device credentials, heartbeat status, and revocation are current. No activity collection exists.
 
 ### Phase 2 — visible time tracking
 

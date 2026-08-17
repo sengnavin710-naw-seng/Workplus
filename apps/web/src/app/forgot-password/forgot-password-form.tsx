@@ -2,6 +2,7 @@
 
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { ArrowLeft, LockKeyhole, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -32,77 +33,6 @@ const OTP_LENGTH = 6;
 const RESEND_NOTICE_DURATION_MS = 3000;
 const RESEND_NOTICE_EXIT_DURATION_MS = 125;
 
-function EmailIcon() {
-  return (
-    <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
-      <rect
-        height="14"
-        rx="2.5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        width="18"
-        x="3"
-        y="5"
-      />
-      <path
-        d="m5 7 7 6 7-6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg aria-hidden="true" className="size-12" fill="none" viewBox="0 0 24 24">
-      <path
-        d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.6"
-      />
-      <rect
-        height="11"
-        rx="3"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        width="14"
-        x="5"
-        y="10"
-      />
-      <circle cx="12" cy="14.5" fill="currentColor" r="1.1" />
-      <path
-        d="M12 15.5v2"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
-}
-
-function ArrowLeftIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-4 shrink-0"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="m15 18-6-6 6-6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
 function StepHeader({
   description,
   lock = false,
@@ -116,7 +46,7 @@ function StepHeader({
     <header className="text-center">
       {lock ? (
         <span className="mx-auto mb-4 grid size-14 place-items-center text-[var(--ink)]">
-          <LockIcon />
+          <LockKeyhole aria-hidden="true" className="size-12" strokeWidth={1.6} />
         </span>
       ) : null}
       <h1 className="text-[22px] font-medium leading-[1.3] tracking-normal">
@@ -405,7 +335,7 @@ export function ForgotPasswordForm({
               }}
               type="button"
             >
-              <ArrowLeftIcon />
+              <ArrowLeft aria-hidden="true" className="size-4 shrink-0" strokeWidth={1.8} />
               <span>Back</span>
             </button>
           </div>
@@ -453,7 +383,7 @@ export function ForgotPasswordForm({
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 left-0 grid w-11 place-items-center text-[color-mix(in_srgb,var(--ink)_55%,transparent)]"
           >
-            <EmailIcon />
+            <Mail aria-hidden="true" className="size-5" strokeWidth={1.7} />
           </span>
           <Input
             autoComplete="email"

@@ -2,30 +2,20 @@
 
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { authClient } from "@/auth/client";
 import { AuthButtonContent } from "@/components/auth-button-content";
 import { PasswordField } from "@/components/password-field";
+import { safeInternalReturnTo } from "@/lib/access-policy";
 
 interface LoginFormProps {
   googleAuthEnabled: boolean;
   initialError?: string;
-}
-
-function UserIcon() {
-  return (
-    <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.7" />
-      <path
-        d="M5 20c.6-4 3-6 7-6s6.4 2 7 6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
+  initialMessage?: string;
+  returnTo?: string;
 }
 
 function GoogleIcon() {
@@ -51,7 +41,7 @@ function GoogleIcon() {
   );
 }
 
-export function LoginForm({ googleAuthEnabled, initialError }: LoginFormProps) {
+export function LoginForm({ googleAuthEnabled, initialError, initialMessage, returnTo }: LoginFormProps) {
   const router = useRouter();
   const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
@@ -87,7 +77,7 @@ export function LoginForm({ googleAuthEnabled, initialError }: LoginFormProps) {
       const firstOrganization = organizationsResult.data?.[0];
       if (firstOrganization) await authClient.organization.setActive({ organizationId: firstOrganization.id });
 
-      router.replace(firstOrganization ? "/dashboard" : "/onboarding");
+      router.replace(safeInternalReturnTo(returnTo) ?? "/auth/complete");
       router.refresh();
     } catch {
       setErrorMessage("Workplus couldn't reach the server. Please try again.");
@@ -103,8 +93,8 @@ export function LoginForm({ googleAuthEnabled, initialError }: LoginFormProps) {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/auth/complete",
-        newUserCallbackURL: "/auth/complete",
+        callbackURL: safeInternalReturnTo(returnTo) ?? "/auth/complete",
+        newUserCallbackURL: safeInternalReturnTo(returnTo) ?? "/auth/complete",
         errorCallbackURL: "/login?error=google",
       });
 
@@ -120,6 +110,11 @@ export function LoginForm({ googleAuthEnabled, initialError }: LoginFormProps) {
 
   return (
     <form aria-busy={isSubmitting} className="mt-8 space-y-5" onSubmit={(event) => void handleSubmit(event)}>
+      {initialMessage ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+          {initialMessage}
+        </p>
+      ) : null}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--ink)]" htmlFor="email">
           Email
@@ -129,7 +124,7 @@ export function LoginForm({ googleAuthEnabled, initialError }: LoginFormProps) {
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 left-0 grid w-11 place-items-center text-[color-mix(in_srgb,var(--ink)_55%,transparent)]"
           >
-            <UserIcon />
+            <Mail aria-hidden="true" className="size-5" strokeWidth={1.7} />
           </span>
           <Input
             autoComplete="email"
