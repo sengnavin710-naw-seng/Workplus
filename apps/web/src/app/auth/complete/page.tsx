@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
-import { getSignedInDestination } from "@/auth/server";
+import { AuthCompleteRedirect } from "./auth-complete-redirect";
 
-export default async function AuthCompletePage() {
-  const destination = await getSignedInDestination();
-  redirect(destination ?? "/login?error=google");
+export default function AuthCompletePage() {
+  return <AuthCompleteRedirect />;
 }
